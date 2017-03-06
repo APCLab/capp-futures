@@ -8,7 +8,6 @@
  *   http://docs.couchdb.org/en/latest/json-structure.html#request-object
  **/
 function(head, req) {
-
   /*
    * param format: (csv|json)
   * */
