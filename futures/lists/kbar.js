@@ -36,15 +36,20 @@ function(head, req) {
   var gen = function(format) {
     return function() {
       if (format === 'csv')
-        send('Date,\tOpen,\tHigh,\tLow,\tClose,\tVolume\n')
+        send('Symbol,Date,Open,High,Low,Close,Volume\n')
 
       while (row = getRow()) {
         var bar = get_ohlc(row);
 
         if (format === 'csv') {
-          send(row.key[0] + ',\t' +
-               bar[0] + ',\t' + bar[1] + ',\t' + bar[2] + ',\t' +
-               bar[3] + ',\t' + bar[4] + '\n');
+          var msg = '';
+          for (var i=1; i<row.key.length; i++)
+            msg += (row.key[i] + ',');
+          msg += row.key[0];
+          for (var i in bar)
+            msg += (',' + bar[i]);
+          msg += '\n';
+          send(msg);
         }
       }
     }
