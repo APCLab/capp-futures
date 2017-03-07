@@ -15,3 +15,5 @@ Settlement endpoint::
 Daily K Bar endpoint::
 
     curl 'http://localhost:5984/market/_design/futures/_list/kbar/tx?keys=\[\["2017-03-01","TX","201703"\],\["2017-03-02","TX","201703"\]\]'
+
+    curl 'http://localhost:5984/market/_design/options/_list/kbar/txo?startkey=\["2017-01-01"\]'
