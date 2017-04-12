@@ -19,7 +19,7 @@ function(head, req) {
     var h = r.price;
     var l = r.price;
     var c = r.price;
-    var vol = r.volume;
+    var vol = 0;
 
     for (var i in row.value) {
       var r = row.value[i];
