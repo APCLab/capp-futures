@@ -122,6 +122,9 @@ function(head, req) {
         else
           send('Symbol,Contract,Date,Time,Open,High,Low,Close,Volume\n');
       }
+      else if (format === 'json') {
+        send('[');
+      }
 
       while (row = getRow()) {  // a row is intra-day, single target data
         var bars = get_ohlc(row, timeframe);
@@ -143,10 +146,21 @@ function(head, req) {
             msg += '\n';
             send(msg);
           }
+          else if (format === 'json') {
+            send(JSON.stringify(bar))
+
+            if (i != bars.length - 1)
+              send(',\n');
+          }
         }
+      }
+
+      if (format === 'json') {
+        send(']\n');
       }
     };
   };
 
   provides('csv', gen('csv'));
+  provides('json', gen('json'));
 }
