@@ -94,21 +94,17 @@ function(head, req) {
      * Note that there are some tick data reveal after 13:45:00.
      * In this case, we will merge the left ticks into the latest kbar.
      */
-    for(; r_idx<rows.length; r_idx++) {
+    for(; r_idx<rows.length; ++r_idx) {
       var bar = bars[bars.length - 1];
-      o = bar[1];
-      h = bar[2];
-      l = bar[3];
-      c = bar[4];
-      vol = bar[5];
 
       r = rows[r_idx];
       var p = r.price;
 
-      h = (p > h ? p : h);
-      l = (p < l ? p : l);
-      c = p;
-      vol += r.volume;
+      bar[1] = (bar[1] == 0 ? p : bar[1]);
+      bar[2] = (p > h ? p : h);
+      bar[3] = (p < l ? p : l);
+      bar[4] = p;
+      bar[5] += r.volume;
     }
 
     return bars;
