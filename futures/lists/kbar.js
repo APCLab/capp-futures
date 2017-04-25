@@ -45,12 +45,13 @@ function(head, req) {
     // intra-day kbar
     var rows = row.value;
     var r_idx = 0; // rows index
-    var r = rows[r_idx];
+    var r = rows[r_idx]; // single row
 
     var o = 0;
     var h = 0;
     var l = 99999;
     var c = 0;
+    var vol = 0;
     var bars = [];
 
     var start_time = 31500; // 08:45:00 in seconds
@@ -61,20 +62,38 @@ function(head, req) {
     for (var cur_time=start_time; cur_time<end_time; cur_time+=timeframe) {
       var tf_end_time = cur_time + timeframe;
 
-      r = rows[r_idx + 1] || rows[rows.length - 1];
-      var p = r.price;
-      o = p;
-      h = p;
-      l = p;
-      c = p;
-      vol = 0;
+      if (r_idx == 0) {
+        o = 0;
+        h = 0;
+        l = 99999;
+        c = 0;
+        vol = 0;
+      }
+      else {
+        /*
+         * Consider there is no any tick in this timeframe,
+         * we should inherit value from the last tick.
+         */
+        r = rows[r_idx - 1];
+        o = h = l = c = r.price;
+        vol = 0;
+      }
 
+      var _init = false;
       for (; r_idx<rows.length; ++r_idx) {
         r = rows[r_idx];
         if (duration(r.time).asSeconds() >= tf_end_time)
           break;  // enter next timeframe
 
         p = r.price;
+
+        if (!_init) {
+          _init = true;
+          o = h = l = c = p;
+          vol = r.volume;
+          continue;
+        }
+
         h = (p > h ? p : h);
         l = (p < l ? p : l);
         c = p;
