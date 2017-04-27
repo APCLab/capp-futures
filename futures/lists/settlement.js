@@ -7,6 +7,8 @@
  * @param {object} req - Request Object.
  *   http://docs.couchdb.org/en/latest/json-structure.html#request-object
  **/
+"use strict";
+
 function(head, req) {
   /*
    * param format: (csv|json)
