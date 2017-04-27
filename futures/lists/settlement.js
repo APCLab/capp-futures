@@ -35,7 +35,6 @@ function(head, req) {
           last_date = date;
         }
 
-        // send(toJSON(row.key) + '\n');
         if (date > last_date) {
           /* date change:
            *   - render: note that we will miss the end of data.
