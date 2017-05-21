@@ -56,6 +56,7 @@ function(head, req) {
 
     var start_time = 31500; // 08:45:00 in seconds
     var end_time = 49500;  // 13:45:00 in seconds
+    var after_houre_time = 53100; // 14:45:00 in seconds
 
     timeframe = parseInt(timeframe);
 
@@ -84,6 +85,8 @@ function(head, req) {
         r = rows[r_idx];
         if (duration(r.time).asSeconds() >= tf_end_time)
           break;  // enter next timeframe
+        else if (duration(r.time).asSeconds() < start_time)
+          continue;  // remove the after houre trading
 
         p = r.price;
 
@@ -118,6 +121,9 @@ function(head, req) {
 
       r = rows[r_idx];
       var p = r.price;
+
+      if (duration(r.time).asSeconds() > after_houre_time)
+        break;  /* the start of after houre trading */
 
       bar[1] = (bar[1] == 0 ? p : bar[1]);
       bar[2] = (p > h ? p : h);
