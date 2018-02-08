@@ -18,7 +18,7 @@ Daily K Bar endpoint::
 
     curl 'http://localhost:5984/market/_design/options/_list/kbar/txo?startkey=\["2017-01-01"\]'
 
-*n* sec K Bar endpoint, specificed via `tf` argument::
+*n* sec K Bar endpoint, specificed via ``tf`` argument which stands for *timeframe*::
 
     curl 'http://localhost:5984/market/_design/options/_list/kbar/txo?startkey=\["2017-01-01"\]&tf=2'
 
