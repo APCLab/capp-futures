@@ -4,6 +4,24 @@ capp-futures
 Couchapp for futures baked by
 `couchapp.py <https://github.com/couchapp/couchapp>`_.
 
+Push to CouchDB
+----------------------------------------------------------------------
+
+#. Create ``.couchapprc`` in dir ``futures``::
+
+    {
+        "env" : {
+            "default" : {
+                "db" : "http://username:password@localhost:5984/market"
+            }
+        }
+    }
+
+#. ``cp futures/.couchapprc options/``
+
+#. ``make``
+
+
 Usage
 ----------------------------------------------------------------------
 
