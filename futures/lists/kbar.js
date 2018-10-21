@@ -41,6 +41,20 @@ function(head, req) {
 
       return [[o, h, l, c, vol]];
     }
+    else if (timeframe === 'raw') {
+      for (var i in row.value) {
+        var msg = "";
+        for (var j=1; j<row.key.length; j++)
+          msg += (row.key[j] + ',');
+        msg += row.key[0];  // Date
+
+        var r = row.value[i];
+        msg += (',' + [r.time, r.price, r.volume] + '\n');
+        send(msg);
+      }
+
+      return [];
+    }
 
     // intra-day kbar
     var rows = row.value;
@@ -140,6 +154,8 @@ function(head, req) {
       if (format === 'csv') {
         if (timeframe === 'daily')
           send('Symbol,Contract,Date,Open,High,Low,Close,Volume\n');
+        else if (timeframe === 'raw')
+          send('Symbol,Contract,Date,Time,Price,Volume\n');
         else
           send('Symbol,Contract,Date,Time,Open,High,Low,Close,Volume\n');
       }

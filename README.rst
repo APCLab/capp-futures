@@ -42,6 +42,7 @@ Daily K Bar endpoint::
 
 Another special ``tf`` keywords are supported:
 - ``daily``
+- ``raw``, which will return the price/volume ticks.
 
 Json K Bar is currently only well formatted for single day query::
 
