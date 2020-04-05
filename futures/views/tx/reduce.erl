@@ -7,8 +7,6 @@ fun
       fun([K, _], D) ->
           [Date, Symbol, Contract] = K,
 
-          Log(io_lib:format("foreach X -> ~p", [K])),
-
           dict:update(Date, fun(Old) -> min(Old, Contract) end, Contract, D)
       end,
       dict:new(),
