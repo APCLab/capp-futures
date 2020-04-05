@@ -40,6 +40,10 @@ Daily K Bar endpoint::
 
     curl 'http://localhost:5984/market/_design/options/_list/kbar/txo?reduce=false&startkey=\["2017-01-01"\]&tf=2'
 
+Vol profile::
+
+    curl 'http://localhost:5984/market/_design/futures/_list/vol_profile/tx?reduce=false&startkey=\["2020-01-01"\]&tf=720'
+
 Another special ``tf`` keywords are supported:
 - ``daily``
 - ``raw``, which will return the price/volume ticks.
