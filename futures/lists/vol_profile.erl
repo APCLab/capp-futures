@@ -26,7 +26,7 @@ fun(_Head, {Req}) ->
   AfterHourTime = 53100, %% 14:45:00 in seconds
   TimeIndex = lists:seq(StartTime, EndTime - 1, TimeFrame),
 
-  Send(io_lib:format("Date,Symbol,Contract,Time,Open,High,Low,Close,Volume~n", [])),
+  Send(io_lib:format("Date,Symbol,Contract,Time,Price,Volume~n", [])),
 
   F = fun({Row}, _) ->
     Id = couch_util:get_value(<<"id">>, Row),
@@ -34,7 +34,7 @@ fun(_Head, {Req}) ->
     V = couch_util:get_value(<<"value">>, Row),
 
     lists:foldl(
-      fun(S, {RawData, PrevKbar}) ->
+      fun(S, RawData) ->
         E = S + TimeFrame,
 
         TimeRange =
@@ -45,59 +45,31 @@ fun(_Head, {Req}) ->
 
         {Ticks, Tail} = lists:splitwith(TimeRange, RawData),
 
-        %% calculate kbar
-        Kbar = lists:foldl(
+        %% calculate volume profile
+        VProf = lists:foldl(
           fun
             ([], _) -> skip;
-            ([_, P, Vol | _], Kbar) ->
-              lists:map(
-                fun({X, Y, F}) ->
-                  {X, F([proplists:get_value(X, Kbar, Y), Y])}
-                end,
-                [
-                  {o, P, fun erlang:hd/1},
-                  {h, P, fun lists:max/1},
-                  {l, P, fun lists:min/1},
-                  {c, P, fun lists:last/1},
-                  {v, Vol, fun lists:sum/1}
-                ]
-              )
+            ([_, P, Vol | _], VProf) ->
+              dict:update_counter(P, Vol, VProf)
           end,
-          lists:keyreplace(v, 1, PrevKbar, {v, 0}),
+          dict:new(),
           Ticks
         ),
-        KbarStr = string:join(
-          lists:map(
-            fun
-              ({_K,V}) when is_float(V) ->
-                float_to_list(V, [{decimals,3}]);
-
-              ({_K,V}) when is_integer(V) ->
-                integer_to_list(V)
-            end,
-            Kbar),
-          ","
+        lists:foreach(
+          fun(P) ->
+            Send(
+              io_lib:format(
+                "~s,~s,~s,~s,~s,~b~n",
+                K ++ [SecondsToTime(S), float_to_list(P, [{decimals,3}]), dict:fetch(P, VProf)]
+              )
+            )
+          end,
+          lists:sort(dict:fetch_keys(VProf))
         ),
 
-        Send(
-          io_lib:format(
-            "~s,~s,~s,~s,~s~n",
-            K ++ [SecondsToTime(S) ,KbarStr]
-          )
-        ),
-
-        {Tail, Kbar}
+        Tail
       end,
-      {
-        lists:dropwhile(fun([Time|_]) -> ParseTime(Time) < StartTime end, V),
-        [
-          {o, 0},
-          {h, 0},
-          {l, 99999},
-          {c, 0},
-          {v, 0}
-        ]
-      },
+      lists:dropwhile(fun([Time|_]) -> ParseTime(Time) < StartTime end, V),
       TimeIndex
     ),
 
