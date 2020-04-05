@@ -23,20 +23,20 @@ function(head, req) {
     if (timeframe === 'daily') {
       // init value
       var r = row.value[0];
-      var o = r.price;
-      var h = r.price;
-      var l = r.price;
-      var c = r.price;
+      var o = r[1];
+      var h = r[1];
+      var l = r[1];
+      var c = r[1];
       var vol = 0;
 
       for (var i in row.value) {
-        var r = row.value[i];
-        var p = r.price;
+        var r = row.value[i];  // [time, price, volume]
+        var p = r[1];
 
         h = (p > h ? p : h);
         l = (p < l ? p : l);
         c = p;
-        vol += r.volume;
+        vol += r[2];
       }
 
       return [[o, h, l, c, vol]];
@@ -49,7 +49,7 @@ function(head, req) {
         msg += row.key[0];  // Date
 
         var r = row.value[i];
-        msg += (',' + [r.time, r.price, r.volume] + '\n');
+        msg += (',' + r  + '\n');
         send(msg);
       }
 
@@ -90,31 +90,33 @@ function(head, req) {
          * we should inherit value from the last tick.
          */
         r = rows[r_idx - 1];
-        o = h = l = c = r.price;
+        o = h = l = c = r[1];
         vol = 0;
       }
 
       var _init = false;
       for (; r_idx<rows.length; ++r_idx) {
-        r = rows[r_idx];
+        var r = rows[r_idx];  // [time, price, volume]
+        var t = r[0];
+        var p = r[1];
+
         if (duration(r.time).asSeconds() >= tf_end_time)
           break;  // enter next timeframe
         else if (duration(r.time).asSeconds() < start_time)
           continue;  // remove the after houre trading
 
-        p = r.price;
 
         if (!_init) {
           _init = true;
           o = h = l = c = p;
-          vol = r.volume;
+          vol = r[2];
           continue;
         }
 
         h = (p > h ? p : h);
         l = (p < l ? p : l);
         c = p;
-        vol += r.volume;
+        vol += r[2];
       }
       /* Rolling out the kbar
        *
@@ -134,7 +136,7 @@ function(head, req) {
       var bar = bars[bars.length - 1];
 
       r = rows[r_idx];
-      var p = r.price;
+      var p = r[1];
 
       if (duration(r.time).asSeconds() > after_houre_time)
         break;  /* the start of after houre trading */
@@ -143,7 +145,7 @@ function(head, req) {
       bar[2] = (p > h ? p : h);
       bar[3] = (p < l ? p : l);
       bar[4] = p;
-      bar[5] += r.volume;
+      bar[5] += r[2];
     }
 
     return bars;
