@@ -46,10 +46,13 @@ fun(_Head, {Req}) ->
         {Ticks, Tail} = lists:splitwith(TimeRange, RawData),
 
         %% calculate kbar
-        Kbar = lists:foldl(
-          fun
-            ([], _) -> skip;
-            ([_, P, Vol | _], Kbar) ->
+        Kbar = case Ticks of
+          [] ->
+            PrevC = proplists:get_value(c, PrevKbar, 0),
+            [{o, PrevC}, {h, PrevC}, {l, PrevC}, {c, PrevC}, {v, 0}];
+
+          _ -> lists:foldl(
+            fun([_, P, Vol | _], Kbar) ->
               lists:map(
                 fun({X, Y, F}) ->
                   {X, F([proplists:get_value(X, Kbar, Y), Y])}
@@ -62,10 +65,12 @@ fun(_Head, {Req}) ->
                   {v, Vol, fun lists:sum/1}
                 ]
               )
-          end,
-          lists:keyreplace(v, 1, PrevKbar, {v, 0}),
-          Ticks
-        ),
+            end,
+            [],
+            Ticks
+          )
+        end,  % Kbar
+
         KbarStr = string:join(
           lists:map(
             fun
@@ -90,13 +95,7 @@ fun(_Head, {Req}) ->
       end,
       {
         lists:dropwhile(fun([Time|_]) -> ParseTime(Time) < StartTime end, V),
-        [
-          {o, 0},
-          {h, 0},
-          {l, 99999},
-          {c, 0},
-          {v, 0}
-        ]
+        []
       },
       TimeIndex
     ),
