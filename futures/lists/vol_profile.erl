@@ -55,12 +55,14 @@ fun(_Head, {Req}) ->
           dict:new(),
           Ticks
         ),
+
+        OutputTime = SecondsToTime(S),
         lists:foreach(
           fun(P) ->
             Send(
               io_lib:format(
                 "~s,~s,~s,~s,~s,~b~n",
-                K ++ [SecondsToTime(S), float_to_list(P, [{decimals,3}]), dict:fetch(P, VProf)]
+                K ++ [OutputTime, float_to_list(P, [{decimals,3}]), dict:fetch(P, VProf)]
               )
             )
           end,
