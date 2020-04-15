@@ -48,6 +48,17 @@ Another special ``tf`` keywords are supported:
 - ``daily``
 - ``raw``, which will return the price/volume ticks.
 
-Json K Bar is currently only well formatted for single day query::
+JSON K Bar is currently only well formatted for single day query::
 
     curl  -H "Accept: application/json" 'http://localhost:5984/market/_design/futures/_list/kbar/tx?keys=\[\["2017-03-01","TX","201703"\]\]&tf=10'
+
+
+Dev Notes
+----------------------------------------------------------------------
+
+- By Using sample view function in single ddoc, but with different reduce function,
+  the view index won't be rebuilt.
+
+- https://docs.couchdb.org/en/stable/ddocs/views/intro.html#one-vs-multiple-design-documents
+
+
