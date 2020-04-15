@@ -1,6 +1,8 @@
 fun(_Head, {Req}) ->
   {Query} = couch_util:get_value(<<"query">>, Req),
   TimeFrame = erlang:binary_to_integer(couch_util:get_value(<<"tf">>, Query, <<"30">>)),
+  OutputType = erlang:binary_to_atom(
+    couch_util:get_value(<<"type">>, Query, <<"volume">>), latin1),
 
   ParseTime = fun(X) ->
     calendar:time_to_seconds(
@@ -26,7 +28,13 @@ fun(_Head, {Req}) ->
   AfterHourTime = 53100, %% 14:45:00 in seconds
   TimeIndex = lists:seq(StartTime, EndTime - 1, TimeFrame),
 
-  Send(io_lib:format("Date,Symbol,Contract,Time,Price,Volume~n", [])),
+  case OutputType of
+    volume ->
+      Send(io_lib:format("Date,Symbol,Contract,Time,Price,Volume~n", []));
+
+    poc ->
+      Send(io_lib:format("Date,Symbol,Contract,Time,Price~n", []))
+  end,
 
   F = fun({Row}, _) ->
     Id = couch_util:get_value(<<"id">>, Row),
@@ -34,7 +42,7 @@ fun(_Head, {Req}) ->
     V = couch_util:get_value(<<"value">>, Row),
 
     lists:foldl(
-      fun(S, RawData) ->
+      fun(S, {RawData, PrevVolAcc}) ->
         E = S + TimeFrame,
 
         TimeRange =
@@ -56,22 +64,63 @@ fun(_Head, {Req}) ->
           Ticks
         ),
 
+        VolAcc = case OutputType of
+          volume -> ok;
+          _ -> dict:merge(fun(_K, V1, V2) -> V1 + V2 end, PrevVolAcc, VProf)
+        end,
+
         OutputTime = SecondsToTime(S),
-        lists:foreach(
-          fun(P) ->
+        OutputPrefix = K ++ [OutputTime],
+        FloatOpt = [{decimals, 3}],
+
+        case OutputType of
+          volume ->
+            SortedKey = lists:sort(dict:fetch_keys(VProf)),
+            SortedVols = lists:map(fun(X) -> dict:fetch(X, VProf) end, SortedKey),
+
+            lists:foreach(
+              fun({P, V}) ->
+                Send(
+                  io_lib:format(
+                    "~s,~s,~s,~s,~s,~b~n",
+                    OutputPrefix ++ [float_to_list(P, FloatOpt), V]
+                  )
+                )
+              end,
+              lists:zip(SortedKey, SortedVols)
+            );
+
+          poc ->
+            SortedKey = lists:sort(dict:fetch_keys(VolAcc)),
+            SortedVols = lists:map(fun(X) -> dict:fetch(X, VolAcc) end, SortedKey),
+            {VolSum, RVolCumSum} =
+              lists:foldl(
+                fun(X, {Sum, Acc}) -> {Sum + X, [Sum + X | Acc]} end, {0, []}, SortedVols),
+            VolCumSum = lists:reverse(RVolCumSum),
+            VolumePerc = lists:map(fun(X) -> X / VolSum end, SortedVols),
+
+            Poc_ = lists:dropwhile(
+              fun({_, V}) -> V < 0.5 end,
+              lists:zip(SortedKey, lists:map(fun(X) -> X / VolSum end, VolCumSum))
+            ),
+            Poc = case Poc_ of
+              [] -> 0.0;
+              [{X, _} | _] -> X
+            end,
             Send(
               io_lib:format(
-                "~s,~s,~s,~s,~s,~b~n",
-                K ++ [OutputTime, float_to_list(P, [{decimals,3}]), dict:fetch(P, VProf)]
+                "~s,~s,~s,~s,~s~n",
+                OutputPrefix ++ [float_to_list(Poc, FloatOpt)]
               )
             )
-          end,
-          lists:sort(dict:fetch_keys(VProf))
-        ),
+        end,
 
-        Tail
+        {Tail, VolAcc}
       end,
-      lists:dropwhile(fun([Time|_]) -> ParseTime(Time) < StartTime end, V),
+      {
+        lists:dropwhile(fun([Time|_]) -> ParseTime(Time) < StartTime end, V),
+        dict:new()
+      },
       TimeIndex
     ),
 
