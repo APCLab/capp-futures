@@ -2,29 +2,19 @@ fun(_Head, {Req}) ->
   {Query} = couch_util:get_value(<<"query">>, Req),
   TimeFrame = erlang:binary_to_integer(couch_util:get_value(<<"tf">>, Query, <<"30">>)),
 
-  ParseTime = fun(X) ->
-    calendar:time_to_seconds(
-      erlang:list_to_tuple(
-        lists:map(
-          fun erlang:binary_to_integer/1,
-          binary:split(X, <<":">>, [global])
-        )
-      )
-    )
-  end,
-  SecondsToTime = fun(S) ->
-    string:join(
-      lists:map(
-        fun(X) -> io_lib:format("~2..0B", [X]) end,
-        tuple_to_list(calendar:seconds_to_time(S))
-      ),
-    ":")
-  end,
+  Part_ = fun
+    Part([], Acc) ->
+      lists:reverse(Acc);
 
-  StartTime     = 31500, %% 08:45:00 in seconds
-  EndTime       = 49500, %% 13:45:00 in seconds
-  AfterHourTime = 53100, %% 14:45:00 in seconds
-  TimeIndex = lists:seq(StartTime, EndTime - 1, TimeFrame),
+    Part(L, Acc) ->
+      Sub = lists:sublist(L, TimeFrame),
+      Tail = case Sub of
+        L -> [];  % no tail
+        _ -> lists:nthtail(TimeFrame, L)
+      end,
+      Part(Tail, [Sub | Acc])
+  end,
+  Part = fun (L) -> Part_(L, []) end,
 
   Send(io_lib:format("Date,Symbol,Contract,Time,Open,High,Low,Close,Volume~n", [])),
 
@@ -33,74 +23,22 @@ fun(_Head, {Req}) ->
     K = couch_util:get_value(<<"key">>, Row),
     V = couch_util:get_value(<<"value">>, Row),
 
-    lists:foldl(
-      fun(S, {RawData, PrevKbar}) ->
-        E = S + TimeFrame,
-
-        TimeRange =
-          fun([Time|_]) ->
-            X = ParseTime(Time),
-            (S =< X) and (X < E)
-          end,
-
-        {Ticks, Tail} = lists:splitwith(TimeRange, RawData),
-
-        %% calculate kbar
-        Kbar = case Ticks of
-          [] ->
-            PrevC = proplists:get_value(c, PrevKbar, 0),
-            [{o, PrevC}, {h, PrevC}, {l, PrevC}, {c, PrevC}, {v, 0}];
-
-          _ -> lists:foldl(
-            fun([_, P, Vol | _], Kbar) ->
-              lists:map(
-                fun({X, Y, F}) ->
-                  {X, F([proplists:get_value(X, Kbar, Y), Y])}
-                end,
-                [
-                  {o, P, fun erlang:hd/1},
-                  {h, P, fun lists:max/1},
-                  {l, P, fun lists:min/1},
-                  {c, P, fun lists:last/1},
-                  {v, Vol, fun lists:sum/1}
-                ]
-              )
-            end,
-            [],
-            Ticks
-          )
-        end,  % Kbar
-
-        KbarStr = string:join(
-          lists:map(
-            fun
-              ({_K,V}) when is_float(V) ->
-                float_to_list(V, [{decimals,3}]);
-
-              ({_K,V}) when is_integer(V) ->
-                integer_to_list(V)
-            end,
-            Kbar),
-          ","
-        ),
-
-        Send(
-          io_lib:format(
-            "~s,~s,~s,~s,~s~n",
-            K ++ [SecondsToTime(S) ,KbarStr]
-          )
-        ),
-
-        {Tail, Kbar}
+    lists:foreach(
+      fun(Kbars) ->
+        Kbar = [
+          hd(hd(Kbars)),  % time
+          lists:nth(2, hd(Kbars)),  % o
+          lists:max(lists:map(fun(L) -> lists:nth(2, L) end, Kbars)),
+          lists:min(lists:map(fun(L) -> lists:nth(3, L) end, Kbars)),
+          lists:nth(4, lists:last(Kbars)),
+          lists:sum(lists:map(fun lists:last/1, Kbars))
+        ],
+        Send(io_lib:format("~s,~s,~s,~s,~.3f,~.3f,~.3f,~.3f,~b~n", K ++ Kbar))
       end,
-      {
-        lists:dropwhile(fun([Time|_]) -> ParseTime(Time) < StartTime end, V),
-        []
-      },
-      TimeIndex
+      Part(V)
     ),
 
-    {ok, Id}
+    {ok, Id}  % do not change this
   end,
 
   FoldRows(F, init),
