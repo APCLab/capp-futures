@@ -32,13 +32,13 @@ Settlement endpoint::
 
 Daily K Bar endpoint::
 
-    curl 'http://localhost:5984/market/_design/futures/_list/kbar/tx?reduce=false&keys=\[\["2017-03-01","TX","201703"\],\["2017-03-02","TX","201703"\]\]'
+    curl 'http://localhost:5984/market/_design/futures/_list/kbar/tx_kbar?tf=18000&keys=\[\["2017-03-01","TX","201703"\],\["2017-03-02","TX","201703"\]\]'
 
-    curl 'http://localhost:5984/market/_design/options/_list/kbar/txo?reduce=false&startkey=\["2017-01-01"\]'
+    curl 'http://localhost:5984/market/_design/options/_list/kbar/txo_kbar?tf=18000reduce=false&startkey=\["2017-01-01"\]'
 
 *n* sec K Bar endpoint, specified via ``tf`` argument which stands for *timeframe*::
 
-    curl 'http://localhost:5984/market/_design/options/_list/kbar/txo?reduce=false&startkey=\["2017-01-01"\]&tf=2'
+    curl 'http://localhost:5984/market/_design/futures/_list/kbar/tx_kbar?&startkey=\["2017-01-01"\]&tf=2'
 
 Vol profile::
 
