@@ -42,7 +42,7 @@ Daily K Bar endpoint::
 
 Vol profile::
 
-    curl 'http://localhost:5984/market/_design/futures/_list/mp/tx_mp?tf=60&startkey=\["2020-01-01"\]&tf=720'
+    curl 'http://localhost:5984/market/_design/futures/_list/vol/tx_vol?tf=60&startkey=\["2020-01-01"\]'
 
 Another special ``tf`` keywords are supported:
 - ``daily``

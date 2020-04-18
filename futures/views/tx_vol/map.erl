@@ -11,21 +11,8 @@ fun({Doc}) ->
       )
     )
   end,
-  SecondsToTime = fun(S) ->
-    list_to_binary(
-      string:join(
-        lists:map(
-          fun(X) -> io_lib:format("~2..0B", [X]) end,
-          tuple_to_list(calendar:seconds_to_time(S))
-        ),
-      ":"
-      )
-    )
-  end,
-  ToSortedList = fun(D) ->
-    K = lists:sort(dict:fetch_keys(D)),
-    V = lists:map(fun(X) -> dict:fetch(X, D) end, K),
-    lists:zipwith(fun(X, Y) -> [X, Y] end, K, V)
+  ToSortedList = fun(M) ->
+    lists:map(fun erlang:tuple_to_list/1, lists:keysort(1, maps:to_list(M)))
   end,
 
   StartTime     = 31500, %% 08:45:00 in seconds
@@ -50,16 +37,15 @@ fun({Doc}) ->
 
         %% calculate volume profile
         VProf = lists:foldl(
-          fun
-            ([], _) -> skip;
-            ([_, P, Vol | _], VProf) ->
-              dict:update_counter(P, Vol, VProf)
+          fun([_, P, Vol | _], M) ->
+            P_ = erlang:float_to_binary(P, [{decimals, 2}]),
+            M#{P_ => maps:get(P_, M, 0) + Vol}
           end,
-          dict:new(),
+          #{},
           Ticks
         ),
 
-        {Tail, [[SecondsToTime(S), ToSortedList(VProf)] | VolAcc]}
+        {Tail, [[S, VProf] | VolAcc]}
       end,
       {
         lists:dropwhile(fun([Time|_]) -> ParseTime(Time) < StartTime end, Row),
