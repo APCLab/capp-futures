@@ -26,11 +26,13 @@ fun(_Head, {Req}) ->
     lists:foreach(
       fun(Kbars) ->
         Kbar = [
+          % time o h l c v
+          % 1    2 3 4 5 6
           hd(hd(Kbars)),  % time
           lists:nth(2, hd(Kbars)),  % o
-          lists:max(lists:map(fun(L) -> lists:nth(2, L) end, Kbars)),
-          lists:min(lists:map(fun(L) -> lists:nth(3, L) end, Kbars)),
-          lists:nth(4, lists:last(Kbars)),
+          lists:max(lists:map(fun(L) -> lists:nth(3, L) end, Kbars)),
+          lists:min(lists:map(fun(L) -> lists:nth(4, L) end, Kbars)),
+          lists:nth(5, lists:last(Kbars)),
           lists:sum(lists:map(fun lists:last/1, Kbars))
         ],
         Send(io_lib:format("~s,~s,~s,~s,~.3f,~.3f,~.3f,~.3f,~b~n", K ++ Kbar))
