@@ -64,7 +64,7 @@ fun({Doc}) ->
                 ]
               )
             end,
-            [],
+            [{v, 0}],
             Ticks
           )
         end,  % Kbar
