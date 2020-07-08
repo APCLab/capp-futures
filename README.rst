@@ -61,4 +61,4 @@ Dev Notes
 
 - https://docs.couchdb.org/en/stable/ddocs/views/intro.html#one-vs-multiple-design-documents
 
-
+- https://stackoverflow.com/questions/28572449
