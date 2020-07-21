@@ -1,6 +1,4 @@
 fun({Doc}) ->
-  Sym = proplists:get_value(<<"symbol">>, Doc, null),
-
   ParseTime = fun(X) ->
     calendar:time_to_seconds(
       erlang:list_to_tuple(
@@ -20,11 +18,11 @@ fun({Doc}) ->
   AfterHourTime = 53100, %% 14:45:00 in seconds
   TimeFrame     = 1,
 
-  GenVolProfile = fun(Row) ->
+  GenTickBar = fun(Row) ->
     TimeIndex = lists:seq(StartTime, EndTime - 1, TimeFrame),
 
-    {_, VolProfile} = lists:foldl(
-      fun(S, {RawData, VolAcc}) ->
+    {_, TickBars} = lists:foldl(
+      fun(S, {RawData, BarAcc}) ->
         E = S + TimeFrame,
 
         TimeRange =
@@ -35,17 +33,17 @@ fun({Doc}) ->
 
         {Ticks, Tail} = lists:splitwith(TimeRange, RawData),
 
-        %% calculate volume profile
-        VProf = lists:foldl(
-          fun([_, P, Vol | _], M) ->
+        %% calculate tick bar
+        Bars = lists:foldl(
+          fun([_, P| _], M) ->
             P_ = erlang:float_to_binary(P, [{decimals, 2}]),
-            M#{P_ => maps:get(P_, M, 0) + Vol}
+            M#{P_ => maps:get(P_, M, 0) + 1}
           end,
           #{},
           Ticks
         ),
 
-        {Tail, [[S, VProf] | VolAcc]}
+        {Tail, [[S, Bars] | BarAcc]}
       end,
       {
         lists:dropwhile(fun([Time|_]) -> ParseTime(Time) < StartTime end, Row),
@@ -54,18 +52,16 @@ fun({Doc}) ->
       TimeIndex
     ),
 
-    lists:reverse(VolProfile)
+    lists:reverse(TickBars)
   end,
 
-  case Sym of
-    <<"TX">> ->
-      K = lists:map(
-        fun(K) -> couch_util:get_value(K, Doc) end,
-        [<<"date">>, <<"symbol">>, <<"contract">>]
-      ),
-      Rs = couch_util:get_value(<<"records">>, Doc, []),
-      Emit(K, GenVolProfile(Rs));
-    _ -> skip
-  end
+  K = lists:map(
+    fun(K) -> couch_util:get_value(K, Doc) end,
+    [<<"symbol">>, <<"date">>, <<"contract">>]
+  ),
+  Rs = couch_util:get_value(<<"records">>, Doc, []),
+  Emit(K, GenTickBar(Rs)),
+
+  ok
 end.
 

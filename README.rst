@@ -28,29 +28,21 @@ Usage
 
 Settlement endpoint::
 
-    curl 'http://localhost:5984/market/_design/futures/_list/settlement/tx_settlement?&startkey=\["2020-01-01"\]'
-
-Daily K Bar endpoint::
-
-    curl 'http://localhost:5984/market/_design/futures/_list/kbar/tx_kbar?tf=18000&keys=\[\["2017-03-01","TX","201703"\],\["2017-03-02","TX","201703"\]\]'
-
-    curl 'http://localhost:5984/market/_design/options/_list/kbar/txo_kbar?tf=18000reduce=false&startkey=\["2017-01-01"\]'
+    curl 'http://localhost:5984/market/_design/futures/_list/settlement/settlement?startkey=\["TX","2020-01-01"\]&endkey=\["TX\ufff0"\]'
 
 *n* sec K Bar endpoint, specified via ``tf`` argument which stands for *timeframe*::
 
-    curl 'http://localhost:5984/market/_design/futures/_list/kbar/tx_kbar?&startkey=\["2017-01-01"\]&tf=2'
+    curl 'http://localhost:5984/market/_design/futures/_list/kbar/kbar?startkey=\["TX"\]&endkey=\["TX\ufff0"\]&tf=2'
 
-Vol profile::
+    curl 'http://localhost:5984/market/_design/futures/_list/kbar/kbar?startkey=\["TX","2020-03-01"\]&endkey=\["TX","2020-12-12"\]&tf=3600'
 
-    curl 'http://localhost:5984/market/_design/futures/_list/vol/tx_vol?tf=60&startkey=\["2020-01-01"\]'
+Vol Bar::
 
-Another special ``tf`` keywords are supported:
-- ``daily``
-- ``raw``, which will return the price/volume ticks.
+    curl 'http://localhost:5984/market/_design/futures/_list/volbar/vol/volbar?startkey=\["TX","2020-01-01"\]&endkey=\["TX\ufff0"\]&tf=3600'
 
-JSON K Bar is currently only well formatted for single day query::
+Tick Bar::
 
-    curl  -H "Accept: application/json" 'http://localhost:5984/market/_design/futures/_list/kbar/tx?keys=\[\["2017-03-01","TX","201703"\]\]&tf=10'
+    curl 'http://localhost:5984/market/_design/futures/_list/tickbar/tick/tickbar?startkey=\["TX","2020-01-01"\]&endkey=\["TX\ufff0"\]&tf=3600'
 
 
 Dev Notes
@@ -62,3 +54,6 @@ Dev Notes
 - https://docs.couchdb.org/en/stable/ddocs/views/intro.html#one-vs-multiple-design-documents
 
 - https://stackoverflow.com/questions/28572449
+
+- Why we need ``\ufff0`` in ``endkey``?
+  https://docs.couchdb.org/en/stable/ddocs/views/collation.html

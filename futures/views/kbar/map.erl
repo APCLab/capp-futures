@@ -1,6 +1,4 @@
 fun({Doc}) ->
-  Sym = proplists:get_value(<<"symbol">>, Doc, null),
-
   ParseTime = fun(X) ->
     calendar:time_to_seconds(
       erlang:list_to_tuple(
@@ -84,14 +82,17 @@ fun({Doc}) ->
     lists:reverse(Kbars)
   end,
 
-  case Sym of
-    <<"TX">> ->
-      K = lists:map(
-        fun(K) -> couch_util:get_value(K, Doc) end,
-        [<<"date">>, <<"symbol">>, <<"contract">>]
-      ),
-      Rs = couch_util:get_value(<<"records">>, Doc, []),
-      Emit(K, GenKbar(Rs));
-    _ -> skip
-  end
+  K = lists:map(
+    fun(K) -> couch_util:get_value(K, Doc) end,
+    [<<"symbol">>, <<"date">>, <<"contract">>]
+  ),
+  Rs = couch_util:get_value(<<"records">>, Doc, []),
+
+  Emit(K, GenKbar(Rs)),
+
+  %% case length(Rs) of
+  %%   X when X >= 5000 -> Emit(K, GenKbar(Rs));
+  %%   _ -> skip
+  %% end;
+  ok
 end.

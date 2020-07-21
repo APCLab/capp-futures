@@ -34,7 +34,8 @@ fun(_Head, {Req}) ->
 
   F = fun({Row}, _) ->
     Id = couch_util:get_value(<<"id">>, Row),
-    K = couch_util:get_value(<<"key">>, Row),
+    [Sym, Date, Contract] = couch_util:get_value(<<"key">>, Row),
+    K = [Date, Sym, Contract],
     V = couch_util:get_value(<<"value">>, Row),
 
     lists:foreach(

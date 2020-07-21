@@ -1,11 +1,11 @@
 %% single key is [ViewKey, DocId],
-%% e.g. [[<<"2020-03-19">>,<<"TX">>,<<"202004">>], <<"20200319-TX-202004">>]
+%% e.g. [[<<"TX">>,<<"2020-03-19">>,<<"202004">>], <<"20200319-TX-202004">>]
 
 fun
   (Keys, Values, false) ->
     D = lists:foldl(
       fun([K, _], D) ->
-          [Date, Symbol, Contract] = K,
+          [Symbol, Date, Contract] = K,
 
           dict:update(Date, fun(Old) -> min(Old, Contract) end, Contract, D)
       end,
