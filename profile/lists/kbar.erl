@@ -14,7 +14,9 @@ fun(_Head, {Req}) ->
       end,
       Part(Tail, [Sub | Acc])
   end,
-  Part = fun (L) -> Part_(L, []) end,
+  Part = fun(L) -> Part_(L, []) end,
+
+  DropZero = fun(L) -> lists:dropwhile(fun(X) -> X == 0 end, L) end,
 
   Send("Date,Symbol,Contract,"),
 
@@ -44,9 +46,9 @@ fun(_Head, {Req}) ->
         end,
         lists:zip([
           fun erlang:hd/1,
-          fun erlang:hd/1,
+          fun(X) -> hd(DropZero(X)) end,
           fun lists:max/1,
-          fun lists:min/1,
+          fun(X) -> hd(DropZero(X)) end,
           fun lists:last/1,
           fun lists:sum/1
           ], V)
