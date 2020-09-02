@@ -1,6 +1,8 @@
 fun(_Head, {Req}) ->
   {Query} = couch_util:get_value(<<"query">>, Req),
   TimeFrame = erlang:binary_to_integer(couch_util:get_value(<<"tf">>, Query, <<"30">>)),
+  ShowHeader = erlang:binary_to_atom(
+    couch_util:get_value(<<"header">>, Query, <<"true">>), utf8),
 
   Part_ = fun
     Part([], Acc) ->
@@ -16,9 +18,13 @@ fun(_Head, {Req}) ->
   end,
   Part = fun(L) -> Part_(L, []) end,
 
-  DropZero = fun(L) -> lists:dropwhile(fun(X) -> X == 0 end, L) end,
-
-  Send("Date,Symbol,Contract,"),
+  DropZero = fun(L) ->
+    X = lists:dropwhile(fun(X) -> X == 0 end, L),
+    case X of
+      [] -> [0.0];
+      _  -> X
+    end
+  end,
 
   F = fun
     RowHandler({Row}, init) ->
@@ -26,6 +32,7 @@ fun(_Head, {Req}) ->
       Sch = couch_util:get_value(<<"schema">>, Doc),
 
       Header = string:join(lists:map(fun([X, _]) -> binary_to_list(X) end, Sch), ","),
+      Send("Date,Symbol,Contract,"),
       Send(io_lib:format("~s~n", [Header])),
 
       RowHandler({Row}, inited);
@@ -34,7 +41,6 @@ fun(_Head, {Req}) ->
       Id = couch_util:get_value(<<"id">>, Row),
       [Sym, Date, Contract] = couch_util:get_value(<<"key">>, Row),
       K = [Date, Sym, Contract],
-      %% V = couch_util:get_value(<<"value">>, Row),
       {Doc}= couch_util:get_value(<<"doc">>, Row),
       V = couch_util:get_value(<<"records">>, Doc),
 
@@ -68,6 +74,9 @@ fun(_Head, {Req}) ->
       {ok, Id}  % do not change this
   end,
 
-  FoldRows(F, init),
+  case ShowHeader of
+    true -> FoldRows(F, init);
+    _    -> FoldRows(F, inited)
+  end,
   ""
 end.
