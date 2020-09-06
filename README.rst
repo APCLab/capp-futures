@@ -28,11 +28,11 @@ Usage
 
 Settlement endpoint::
 
-    curl 'http://localhost:5984/market/_design/futures/_list/settlement/settlement?startkey=\["TX","2020-01-01"\]&endkey=\["TX\ufff0"\]'
+    curl 'http://localhost:5984/futures-kbar/_design/profile/_list/settlement/settlement?startkey=\["TX","2020-01-01"\]&endkey=\["TX\ufff0"\]&header=true'
 
 *n* sec K Bar endpoint, specified via ``tf`` argument which stands for *timeframe*::
 
-    curl 'http://localhost:5984/market/_design/profile/_list/kbar/by_sym?startkey=\["TX"\]&endkey=\["TX\ufff0"\]&tf=2&include_docs=true&header=true'
+    curl 'http://localhost:5984/futures-kbar/_design/profile/_list/kbar/by_sym?startkey=\["TX"\]&endkey=\["TX\ufff0"\]&tf=2&include_docs=true&header=true'
 
     curl 'http://localhost:5984/market/_design/profile/_list/kbar/by_sym?startkey=\["TX","2020-03-01"\]&endkey=\["TX","2020-12-12"\]&include_docs=true&tf=3600'
 
