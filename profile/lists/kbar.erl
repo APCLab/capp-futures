@@ -28,7 +28,7 @@ fun(_Head, {Req}) ->
 
   F = fun
     RowHandler({Row}, init) ->
-      {Doc}= couch_util:get_value(<<"doc">>, Row),
+      {Doc} = couch_util:get_value(<<"doc">>, Row),
       Sch = couch_util:get_value(<<"schema">>, Doc),
 
       Header = string:join(lists:map(fun([X, _]) -> binary_to_list(X) end, Sch), ","),
