@@ -38,7 +38,7 @@ Settlement endpoint::
 
 Vol Bar::
 
-    curl 'http://localhost:5984/market/_design/futures/_list/volbar/vol/volbar?startkey=\["TX","2020-01-01"\]&endkey=\["TX\ufff0"\]&tf=3600'
+    curl 'http://localhost:5984/futures-volbar/_design/volprofile/_list/volbar/by_sym?include_docs=true&startkey=\["TX","2020-03-19"]&endkey=\["TX\ufff0"\]&tf=60'
 
 Tick Bar::
 
