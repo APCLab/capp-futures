@@ -34,11 +34,11 @@ Settlement endpoint::
 
     curl 'http://localhost:5984/futures-kbar/_design/profile/_list/kbar/by_sym?startkey=\["TX"\]&endkey=\["TX\ufff0"\]&tf=2&include_docs=true&header=true'
 
-    curl 'http://localhost:5984/market/_design/profile/_list/kbar/by_sym?startkey=\["TX","2020-03-01"\]&endkey=\["TX","2020-12-12"\]&include_docs=true&tf=3600'
+    curl 'http://localhost:5984/market/_design/profile/_list/kbar/by_sym?startkey=\["TX","2020-03-01"\]&endkey=\["TX",\{\}\]&include_docs=true&tf=3600'
 
 Vol Bar::
 
-    curl 'http://localhost:5984/futures-volbar/_design/volprofile/_list/volbar/by_sym?include_docs=true&startkey=\["TX","2020-03-19"]&endkey=\["TX\ufff0"\]&tf=60'
+    curl 'http://localhost:5984/futures-volbar/_design/volprofile/_list/volbar/by_sym?include_docs=true&startkey=\["TX","2020-03-19"]&endkey=\["TX",\{\}\]&tf=60'
 
 Tick Bar::
 
