@@ -41,7 +41,7 @@ fun(_Head, {Req}) ->
       Id = couch_util:get_value(<<"id">>, Row),
       [Sym, Date, Contract] = couch_util:get_value(<<"key">>, Row),
       K = [Date, Sym, Contract],
-      {Doc}= couch_util:get_value(<<"doc">>, Row),
+      {Doc} = couch_util:get_value(<<"doc">>, Row),
       V = couch_util:get_value(<<"records">>, Doc),
 
       % time o h l c v
@@ -54,7 +54,7 @@ fun(_Head, {Req}) ->
           fun erlang:hd/1,
           fun(X) -> hd(DropZero(X)) end,
           fun lists:max/1,
-          fun(X) -> hd(DropZero(X)) end,
+          fun(X) -> lists:min(DropZero(X)) end,
           fun lists:last/1,
           fun lists:sum/1
           ], V)
